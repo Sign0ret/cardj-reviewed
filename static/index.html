@@ -2,144 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Driving Assistant - Dashboard</title>
+    <title>AI Driver Assistant - Live Control</title>
     <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --accent: #38bdf8;
-            --text: #f1f5f9;
-            --success: #22c55e;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg); 
-            color: var(--text); 
-            margin: 0; padding: 20px;
-        }
-        .header { text-align: center; margin-bottom: 30px; }
-        h1 { color: var(--accent); margin-bottom: 5px; }
-        
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background-color: var(--card);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            border-top: 4px solid var(--accent);
-        }
-        
-        .status-item {
-            font-size: 1.2rem;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-        }
-        
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --success: #22c55e; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border-top: 4px solid var(--accent); }
+        .full-width { grid-column: span 2; }
+        .video-container { width: 100%; border-radius: 8px; overflow: hidden; background: #000; border: 2px solid #334155; }
+        .status-item { font-size: 1.2rem; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
         .status-item span { font-weight: bold; color: var(--accent); }
-
-        .song {
-            background: rgba(255,255,255,0.05);
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--success);
-            transition: transform 0.2s;
-        }
-        .song:hover { transform: translateX(5px); }
-        .song b { font-size: 1.1rem; display: block; }
-        .song i { font-size: 0.9rem; color: #94a3b8; }
-        
-        .btn-play {
-            display: inline-block;
-            margin-top: 10px;
-            color: var(--success);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border: 1px solid var(--success);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .btn-play:hover { background: var(--success); color: white; }
-
-        #connection-status {
-            font-size: 0.8rem;
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: #64748b;
-        }
+        .song { background: rgba(255,255,255,0.05); margin: 10px 0; padding: 12px; border-radius: 8px; border-left: 4px solid var(--success); }
+        .btn-play { color: var(--success); text-decoration: none; font-weight: bold; font-size: 0.8rem; border: 1px solid var(--success); padding: 3px 7px; border-radius: 4px; }
+        h1, h2 { margin-top: 0; color: var(--accent); }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>🚗 AI Driver Assistant</h1>
-        <p>Real-Time Emotion Monitoring & Music Recommendations</p>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1>🚗 AI Driver Monitoring System</h1>
     </div>
 
     <div class="dashboard">
-        <div class="card">
-            <h2>🎭 Current State</h2>
-            <div class="status-item">Camera (ResNet): <span id="cam-emotion">Waiting...</span></div>
-            <div class="status-item">Voice (Gemini): <span id="voice-emotion">Waiting...</span></div>
-        </div>
-
-        <div class="card">
-            <h2>🎵 Live Recommendations</h2>
-            <div id="playlist">
-                <p>Talk to the robot to generate suggestions...</p>
+        <div class="card full-width">
+            <h2>👁️ AI Vision (Real-Time Inference)</h2>
+            <div class="video-container">
+                <img src="/video_feed" style="width: 100%; height: auto; display: block;">
             </div>
         </div>
-    </div>
 
-    <div id="connection-status">Server: <span id="server-dot">⚪</span></div>
+        <div class="card">
+            <h2>🎭 Detected States</h2>
+            <div class="status-item">Visual (ResNet): <span id="cam-emotion">WAITING...</span></div>
+            <div class="status-item">Voice (Gemini): <span id="voice-emotion">WAITING...</span></div>
+        </div>
+
+        <div class="card">
+            <h2>🎵 Dynamic Playlist</h2>
+            <div id="playlist"><p>Listening for driver feedback...</p></div>
+        </div>
+    </div>
 
     <script>
         async function updateData() {
             try {
-                // The /status endpoint defined in app.py
                 const res = await fetch('/status');
-                if (!res.ok) throw new Error();
-                
                 const data = await res.json();
-                
-                // Update emotion text
                 document.getElementById('cam-emotion').innerText = data.camera.toUpperCase();
                 document.getElementById('voice-emotion').innerText = data.voice.toUpperCase();
-                document.getElementById('server-dot').innerText = "🟢";
-                document.getElementById('server-dot').style.color = "#22c55e";
-
-                // Update Playlist
+                
                 let html = "";
-                if (data.recommendations && data.recommendations.length > 0) {
-                    data.recommendations.forEach(s => {
-                        html += `
-                            <div class="song">
-                                <b>${s.title}</b>
-                                <i>${s.artist}</i>
-                                ${s.url ? `<a href="${s.url}" target="_blank" class="btn-play">▶ PLAY</a>` : ''}
-                            </div>`;
-                    });
-                    document.getElementById('playlist').innerHTML = html;
-                }
-            } catch (e) {
-                document.getElementById('server-dot').innerText = "🔴";
-                document.getElementById('server-dot').style.color = "#ef4444";
-            }
+                data.recommendations.forEach(s => {
+                    html += `<div class="song"><b>${s.title}</b> - ${s.artist}<br>
+                             ${s.url ? `<a href="${s.url}" target="_blank" class="btn-play">PLAY LINK</a>` : ''}</div>`;
+                });
+                if(html) document.getElementById('playlist').innerHTML = html;
+            } catch (e) {}
         }
-
-        // Refresh every 1 second (Polling)
         setInterval(updateData, 1000);
     </script>
 </body>

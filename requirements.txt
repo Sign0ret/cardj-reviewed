@@ -6,4 +6,5 @@ fastapi
 uvicorn
 numpy
 pandas
+opencv-contrib-python
 furhat-remote-api
