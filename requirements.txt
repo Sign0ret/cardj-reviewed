@@ -1,0 +1,9 @@
+torch
+torchvision
+opencv-python
+google-genai
+fastapi
+uvicorn
+numpy
+pandas
+furhat-remote-api
