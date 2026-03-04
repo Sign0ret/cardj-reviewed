@@ -8,3 +8,4 @@ numpy
 pandas
 opencv-contrib-python
 furhat-remote-api
+google-genai>=0.3.0

@@ -2,62 +2,214 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Driver Assistant - Live Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Driver Assistant - Dashboard</title>
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --success: #22c55e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; border-top: 4px solid var(--accent); }
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f1f5f9;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; padding: 20px;
+            transition: background 0.5s ease;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--accent); margin-bottom: 5px; }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            border-top: 4px solid var(--accent);
+            transition: transform 0.3s ease, border-color 0.5s ease;
+        }
+
         .full-width { grid-column: span 2; }
-        .video-container { width: 100%; border-radius: 8px; overflow: hidden; background: #000; border: 2px solid #334155; }
-        .status-item { font-size: 1.2rem; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; }
+
+        .video-container {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid #334155;
+        }
+
+        .status-item {
+            font-size: 1.1rem;
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
         .status-item span { font-weight: bold; color: var(--accent); }
-        .song { background: rgba(255,255,255,0.05); margin: 10px 0; padding: 12px; border-radius: 8px; border-left: 4px solid var(--success); }
-        .btn-play { color: var(--success); text-decoration: none; font-weight: bold; font-size: 0.8rem; border: 1px solid var(--success); padding: 3px 7px; border-radius: 4px; }
-        h1, h2 { margin-top: 0; color: var(--accent); }
+
+        .transcript-box {
+            border-top: 1px solid #334155;
+            margin-top: 20px;
+            padding-top: 15px;
+        }
+
+        #voice-transcript {
+            display: block;
+            margin-top: 8px;
+            font-style: italic;
+            color: #cbd5e1;
+            font-size: 1.2rem;
+            min-height: 1.5em;
+        }
+
+        .song {
+            background: rgba(255,255,255,0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+            transition: all 0.2s;
+        }
+        .song:hover { transform: translateX(8px); background: rgba(255,255,255,0.1); }
+        .song b { font-size: 1.1rem; display: block; }
+        .song i { font-size: 0.9rem; color: #94a3b8; }
+        
+        .btn-play {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--success);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--success);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .btn-play:hover { background: var(--success); color: white; }
+
+        #connection-status {
+            font-size: 0.8rem;
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #64748b;
+        }
+
+        /* Dynamic Classes */
+        .border-happy { border-top-color: var(--success) !important; }
+        .border-sad { border-top-color: #6366f1 !important; }
+        .border-angry { border-top-color: var(--danger) !important; }
+        .border-calm { border-top-color: var(--accent) !important; }
     </style>
 </head>
 <body>
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h1>🚗 AI Driver Monitoring System</h1>
+
+    <div class="header">
+        <h1>🚗 AI Driver Assistant</h1>
+        <p>Live Multi-Modal Monitoring: Vision + Voice + Music</p>
     </div>
 
     <div class="dashboard">
-        <div class="card full-width">
-            <h2>👁️ AI Vision (Real-Time Inference)</h2>
+        <div class="card full-width" id="video-card">
+            <h2>👁️ AI Vision Feed</h2>
             <div class="video-container">
-                <img src="/video_feed" style="width: 100%; height: auto; display: block;">
+                <img src="/video_feed" style="width: 100%; height: auto; display: block;" alt="Live AI Camera">
             </div>
         </div>
 
-        <div class="card">
-            <h2>🎭 Detected States</h2>
+        <div class="card" id="status-card">
+            <h2>🎭 Current States</h2>
             <div class="status-item">Visual (ResNet): <span id="cam-emotion">WAITING...</span></div>
             <div class="status-item">Voice (Gemini): <span id="voice-emotion">WAITING...</span></div>
+            
+            <div class="transcript-box">
+                <i style="color: #94a3b8; font-size: 0.9rem;">Driver Transcript:</i>
+                <span id="voice-transcript">"Say something to Furhat..."</span>
+            </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="playlist-card">
             <h2>🎵 Dynamic Playlist</h2>
-            <div id="playlist"><p>Listening for driver feedback...</p></div>
+            <div id="playlist">
+                <p style="color: #64748b;">Awaiting mood synchronization...</p>
+            </div>
         </div>
     </div>
 
+    <div id="connection-status">System Status: <span id="server-dot">⚪</span></div>
+
     <script>
+        const colorMap = {
+            'happy': 'border-happy',
+            'sad': 'border-sad',
+            'angry': 'border-angry',
+            'calm': 'border-calm'
+        };
+
         async function updateData() {
             try {
                 const res = await fetch('/status');
+                if (!res.ok) throw new Error();
                 const data = await res.json();
-                document.getElementById('cam-emotion').innerText = data.camera.toUpperCase();
-                document.getElementById('voice-emotion').innerText = data.voice.toUpperCase();
                 
-                let html = "";
-                data.recommendations.forEach(s => {
-                    html += `<div class="song"><b>${s.title}</b> - ${s.artist}<br>
-                             ${s.url ? `<a href="${s.url}" target="_blank" class="btn-play">PLAY LINK</a>` : ''}</div>`;
+                // Update Text
+                const camEmo = data.camera.toLowerCase();
+                const voiceEmo = data.voice.toLowerCase();
+                
+                document.getElementById('cam-emotion').innerText = camEmo.toUpperCase();
+                document.getElementById('voice-emotion').innerText = voiceEmo.toUpperCase();
+                document.getElementById('server-dot').innerText = "🟢 ONLINE";
+                document.getElementById('server-dot').style.color = "#22c55e";
+
+                // Update Transcript
+                if (data.transcript) {
+                    document.getElementById('voice-transcript').innerText = `"${data.transcript}"`;
+                }
+
+                // Update Colors/Styles based on Voice Emotion
+                const cards = ['video-card', 'status-card', 'playlist-card'];
+                cards.forEach(id => {
+                    const el = document.getElementById(id);
+                    // Remove old emotion classes
+                    Object.values(colorMap).forEach(cls => el.classList.remove(cls));
+                    // Add current emotion class
+                    if (colorMap[voiceEmo]) el.classList.add(colorMap[voiceEmo]);
                 });
-                if(html) document.getElementById('playlist').innerHTML = html;
-            } catch (e) {}
+
+                // Update Playlist
+                let html = "";
+                if (data.recommendations && data.recommendations.length > 0) {
+                    data.recommendations.forEach(s => {
+                        html += `
+                            <div class="song">
+                                <b>${s.title}</b>
+                                <i>${s.artist}</i>
+                                ${s.url ? `<a href="${s.url}" target="_blank" class="btn-play">▶ PLAY TRACK</a>` : ''}
+                            </div>`;
+                    });
+                    document.getElementById('playlist').innerHTML = html;
+                }
+            } catch (e) {
+                document.getElementById('server-dot').innerText = "🔴 DISCONNECTED";
+                document.getElementById('server-dot').style.color = "#ef4444";
+            }
         }
+
+        // Refresh at 1Hz to keep UI responsive but light on the CPU
         setInterval(updateData, 1000);
     </script>
 </body>
